@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,10 +46,7 @@ namespace EFCoreTutoral.Controllers
         [HttpGet("GetById")]
         public virtual async Task<ActionResult<TEntity?>> GetByIdAsync(int id, CancellationToken cancellation = default)
         {
-            IQueryable<TEntity?> query = DataContext.Set<TEntity>()
-                 .AsNoTracking()
-                .Where(w => EF.Property<int>(w, "Id") == id);
-            return await query.FirstOrDefaultAsync();
+           return await GetByIDAsync(id, cancellation); 
         }
 
         [HttpGet("GetByPage")]
@@ -60,6 +58,53 @@ namespace EFCoreTutoral.Controllers
                 .Skip(startingRecordNumber)
                 .Take(pageSize);
             return await query.ToListAsync(cancellationToken);
+        }
+
+        [HttpPost]
+        public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
+        {
+            await DataContext.Set<TEntity>().AddAsync(entity,cancellationToken);
+            await DataContext.SaveChangesAsync(cancellationToken);
+            return entity;
+        }
+
+        [HttpPut]
+        public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+        {
+            DataContext.Set<TEntity>().Add(entity).State = EntityState.Modified;
+            await DataContext.SaveChangesAsync(cancellationToken);
+            return entity;
+        }
+
+        [HttpDelete]
+        public virtual async ValueTask<bool> DeleteAsync(int Id, CancellationToken cancellationToken)
+        {
+            bool result = false;
+            TEntity? entity = await GetByIDAsync(Id, cancellationToken);
+            if (entity is not null) {
+                DataContext.Remove(entity);
+                await DataContext.SaveChangesAsync(cancellationToken);
+                result = true;
+            }
+            return result;
+
+        }
+
+        [HttpGet("FindAll")]
+        public virtual async Task<List<TEntity>> FindEntityAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            IQueryable<TEntity> query = DataContext.Set<TEntity>()
+                .AsNoTracking()
+                .Where(predicate);
+            return await query.ToListAsync();
+        }
+
+        private async Task<TEntity?> GetByIDAsync(int id , CancellationToken cancellationToken  = default)
+        {
+            IQueryable<TEntity?> query = DataContext.Set<TEntity>()
+                .AsNoTracking()
+               .Where(w => EF.Property<int>(w, "Id") == id);
+            return await query.FirstOrDefaultAsync();
         }
     }
 }

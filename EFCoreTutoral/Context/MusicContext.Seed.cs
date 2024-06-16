@@ -7,6 +7,7 @@ namespace EFCoreTutoral.Context
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            
             modelBuilder.Entity<GenreModel>().HasData(
                                // new Genre { Id = -1, GenreName = "None" },
                                new GenreModel { Id = 1, GenreName = "Rock and Roll" },

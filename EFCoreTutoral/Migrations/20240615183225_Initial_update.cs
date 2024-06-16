@@ -57,13 +57,12 @@ namespace EFCoreTutoral.Migrations
                         column: x => x.ArtistId,
                         principalTable: "T_Artists",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_T_Songs_T_Genres_GenreId",
                         column: x => x.GenreId,
                         principalTable: "T_Genres",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.InsertData(
